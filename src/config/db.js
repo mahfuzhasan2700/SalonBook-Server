@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
 
-let isConnected = false;
+let connectionPromise = null;
 
 const connectDB = async () => {
-  // If already connected, reuse connection in serverless environment
-  if (isConnected || mongoose.connection.readyState >= 1) {
-    return;
+  // If already connected, reuse existing connection
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  // If a connection attempt is currently in-flight, await that exact promise
+  if (connectionPromise) {
+    return connectionPromise;
   }
 
   try {
@@ -15,12 +20,15 @@ const connectDB = async () => {
       return;
     }
 
-    const conn = await mongoose.connect(mongoUri, {
+    connectionPromise = mongoose.connect(mongoUri, {
       bufferCommands: false,
     });
-    isConnected = true;
+
+    const conn = await connectionPromise;
     console.log(`[MongoDB Connected]: ${conn.connection.host}`);
+    return conn;
   } catch (error) {
+    connectionPromise = null;
     console.error(`[MongoDB Connection Error]: ${error.message}`);
     throw error;
   }

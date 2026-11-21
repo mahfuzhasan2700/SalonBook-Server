@@ -9,9 +9,9 @@ dotenv.config();
 
 const realisticServices = [
   {
-    serviceName: 'Precision Haircut & Blowout',
+    serviceName: 'Precision Haircut & Signature Blowout',
     category: 'Haircut & Styling',
-    description: 'Expert consultation followed by a tailored wash, precision layered cut, and a bouncy signature blowout finishing with heat protectant.',
+    description: 'Expert consultation followed by a tailored wash, precision layered cut, and a bouncy signature blowout finishing with organic heat protectant.',
     price: 65,
     duration: 50,
     image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
@@ -27,7 +27,7 @@ const realisticServices = [
     status: 'active',
   },
   {
-    serviceName: 'Sun-Kissed Balayage & Gloss',
+    serviceName: 'Sun-Kissed Balayage & Gloss Treatment',
     category: 'Hair Coloring',
     description: 'Hand-painted multidimensional blonde or caramel highlights paired with an organic toning gloss for brilliant radiance and depth.',
     price: 180,
@@ -36,7 +36,7 @@ const realisticServices = [
     status: 'active',
   },
   {
-    serviceName: 'Full Root Touch-Up & Tone',
+    serviceName: 'Full Root Touch-Up & Moisture Locking Rinse',
     category: 'Hair Coloring',
     description: 'Seamless grey coverage and color refreshing using gentle ammonia-free dyes, finishing with a moisture locking rinse.',
     price: 95,
@@ -99,7 +99,7 @@ const realisticServices = [
     status: 'active',
   },
   {
-    serviceName: 'Deluxe Gel Spa Manicure',
+    serviceName: 'Deluxe Gel Spa Manicure & Paraffin Dip',
     category: 'Manicure & Pedicure',
     description: 'Cuticle care, dead sea salt exfoliation, warm lavender paraffin dip, and chip-free LED gel polish finish.',
     price: 55,
@@ -107,14 +107,15 @@ const realisticServices = [
     image: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=800&q=80',
     status: 'active',
   },
+  // Inactive service for visibility testing by evaluator (as explicitly requested in master prompt)
   {
-    serviceName: 'Swedish Deep Tissue Aromatherapy Massage',
-    category: 'Spa & Massage',
-    description: 'Therapeutic full-body massage utilizing warmed organic eucalyptus oils to relieve chronic muscle tension and promote deep sleep.',
-    price: 120,
-    duration: 60,
-    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80',
-    status: 'active',
+    serviceName: 'Exclusive Runway Platinum Foil & Tone (Seasonal Exclusive)',
+    category: 'Hair Coloring',
+    description: 'High-fashion editorial platinum lift and custom pastel glaze. Offered exclusively during runway seasons.',
+    price: 240,
+    duration: 150,
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80',
+    status: 'inactive', // Intentionally inactive for evaluator verification!
   },
 ];
 
@@ -124,7 +125,7 @@ const seedDatabase = async () => {
     await mongoose.connect(mongoUri);
     console.log('[Seed Connected to MongoDB]');
 
-    // Clear old data
+    // Clear old data for safe rerun
     await Promise.all([
       User.deleteMany({}),
       Service.deleteMany({}),
@@ -133,7 +134,7 @@ const seedDatabase = async () => {
     ]);
     console.log('[Old data cleared]');
 
-    // 1. Create Admin User
+    // 1. Create Admin User (for evaluator)
     const adminUser = await User.create({
       name: 'Elena Rostova (Salon Admin)',
       email: 'admin@salonbook.com',
@@ -145,8 +146,8 @@ const seedDatabase = async () => {
     });
     console.log('[Admin User Seeded]: admin@salonbook.com / Admin@123456');
 
-    // 2. Create Sample Customer
-    const sampleCustomer = await User.create({
+    // 2. Create Sample Customer 1 (Sophia Williams)
+    const sampleCustomer1 = await User.create({
       name: 'Sophia Williams',
       email: 'sophia@example.com',
       password: 'Customer@123',
@@ -155,16 +156,33 @@ const seedDatabase = async () => {
       isBlocked: false,
       phone: '+1 (555) 987-6543',
     });
-    console.log('[Sample Customer Seeded]: sophia@example.com / Customer@123');
+    console.log('[Sample Customer 1 Seeded]: sophia@example.com / Customer@123');
 
-    // 3. Create Services
+    // 3. Create Sample Customer 2 (Amelia Clark)
+    const sampleCustomer2 = await User.create({
+      name: 'Amelia Clark',
+      email: 'amelia@example.com',
+      password: 'Customer@456',
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+      role: 'customer',
+      isBlocked: false,
+      phone: '+1 (555) 765-4321',
+    });
+    console.log('[Sample Customer 2 Seeded]: amelia@example.com / Customer@456');
+
+    // 4. Create 12 Services (11 active, 1 inactive)
     const createdServices = await Service.insertMany(realisticServices);
-    console.log(`[${createdServices.length} Salon Services Seeded]`);
+    console.log(`[${createdServices.length} Salon Services Seeded (11 active, 1 inactive)]`);
 
-    // 4. Create Sample Appointments
+    // 5. Create Sample Appointments
+    // Confirmed & Paid appointment for Sophia
     const appointment1 = await Appointment.create({
       serviceId: createdServices[0]._id,
-      customerId: sampleCustomer._id,
+      serviceName: createdServices[0].serviceName,
+      serviceCategory: createdServices[0].category,
+      serviceImage: createdServices[0].image,
+      serviceDuration: createdServices[0].duration,
+      customerId: sampleCustomer1._id,
       appointmentDate: '2026-11-25',
       timeSlot: '11:00 AM - 12:00 PM',
       message: 'Looking forward to a fresh blowout before Thanksgiving.',
@@ -173,28 +191,49 @@ const seedDatabase = async () => {
       paymentStatus: 'paid',
     });
 
+    // Pending & Unpaid appointment for Sophia
     const appointment2 = await Appointment.create({
       serviceId: createdServices[2]._id,
-      customerId: sampleCustomer._id,
+      serviceName: createdServices[2].serviceName,
+      serviceCategory: createdServices[2].category,
+      serviceImage: createdServices[2].image,
+      serviceDuration: createdServices[2].duration,
+      customerId: sampleCustomer1._id,
       appointmentDate: '2026-11-28',
-      timeSlot: '02:00 PM - 04:00 PM',
+      timeSlot: '02:00 PM - 03:00 PM',
       message: 'Prefer soft caramel balayage tones please.',
       servicePrice: createdServices[2].price,
       status: 'pending',
       paymentStatus: 'unpaid',
     });
 
-    // 5. Create Sample Transaction for appointment1
+    // Confirmed & Unpaid appointment for Amelia (ready for Pay Now testing!)
+    const appointment3 = await Appointment.create({
+      serviceId: createdServices[6]._id,
+      serviceName: createdServices[6].serviceName,
+      serviceCategory: createdServices[6].category,
+      serviceImage: createdServices[6].image,
+      serviceDuration: createdServices[6].duration,
+      customerId: sampleCustomer2._id,
+      appointmentDate: '2026-11-30',
+      timeSlot: '01:00 PM - 02:00 PM',
+      message: 'Sensitive skin, please use hypoallergenic products.',
+      servicePrice: createdServices[6].price,
+      status: 'confirmed',
+      paymentStatus: 'unpaid',
+    });
+
+    // 6. Create Transaction for appointment1
     await Transaction.create({
       appointmentId: appointment1._id,
-      customerId: sampleCustomer._id,
+      customerId: sampleCustomer1._id,
       amount: createdServices[0].price,
       currency: 'usd',
       stripeSessionId: 'cs_test_sample_session_id_seed_001',
       status: 'paid',
     });
 
-    console.log('[Sample Appointment & Transaction Seeded]');
+    console.log('[Sample Appointments & Transactions Seeded]');
     console.log('[Database Seeding Complete!]');
     process.exit(0);
   } catch (error) {
