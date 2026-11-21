@@ -77,7 +77,7 @@ const realisticServices = [
     description: 'Firming botanical mask, microcurrent toning stimulation, and lymphatic drainage massage to contour the jawline.',
     price: 155,
     duration: 75,
-    image: 'https://images.unsplash.com/photo-1512290900672-1f02e7ad0ba8?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=800&q=80',
     status: 'active',
   },
   {
@@ -105,6 +105,24 @@ const realisticServices = [
     price: 55,
     duration: 50,
     image: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?auto=format&fit=crop&w=800&q=80',
+    status: 'active',
+  },
+  {
+    serviceName: 'Aromatherapy Swedish Massage & Hot Basalt Stones',
+    category: 'Spa & Massage',
+    description: 'Full-body relaxation therapy combining warmed organic botanical oils, rhythmic Swedish strokes, and heated volcanic basalt stones.',
+    price: 140,
+    duration: 60,
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=800&q=80',
+    status: 'active',
+  },
+  {
+    serviceName: 'Deep Tissue Muscle Release & Herbal Compress',
+    category: 'Spa & Massage',
+    description: 'Therapeutic pressure targeting persistent back and shoulder stiffness, enriched with steaming herbal compresses to melt tension.',
+    price: 165,
+    duration: 75,
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
     status: 'active',
   },
   // Inactive service for visibility testing by evaluator (as explicitly requested in master prompt)
