@@ -1,12 +1,28 @@
 import mongoose from 'mongoose';
 
+let isConnected = false;
+
 const connectDB = async () => {
+  // If already connected, reuse connection in serverless environment
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    return;
+  }
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/salonbook');
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      console.warn('[MongoDB Warning]: MONGODB_URI is not defined in environment variables.');
+      return;
+    }
+
+    const conn = await mongoose.connect(mongoUri, {
+      bufferCommands: false,
+    });
+    isConnected = true;
     console.log(`[MongoDB Connected]: ${conn.connection.host}`);
   } catch (error) {
     console.error(`[MongoDB Connection Error]: ${error.message}`);
-    process.exit(1);
+    throw error;
   }
 };
 

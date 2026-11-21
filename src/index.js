@@ -15,14 +15,42 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB Database
-connectDB();
+// Connect to MongoDB Database on server start (for local)
+connectDB().catch((err) => console.error('[Initial DB connection error]:', err.message));
 
-// CORS configuration
+// Middleware to ensure DB connection is ready for serverless requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed. Please ensure MongoDB Atlas is reachable.',
+    });
+  }
+});
+
+// Flexible CORS for Localhost & Vercel Domains
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || '*',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow localhost and any .vercel.app domain
+      if (
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('http://127.0.0.1') ||
+        origin.endsWith('.vercel.app') ||
+        origin === process.env.CLIENT_URL
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive for production deployment
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
@@ -38,7 +66,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'SalonBook REST API Server is operational.',
+    message: 'SalonBook REST API Server is operational on Vercel.',
     version: '1.0.0',
     documentation: 'https://github.com/mahfuzhasan2700/SalonBook-Server#readme',
   });
@@ -68,7 +96,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`[SalonBook Server] Listening on port ${PORT}`);
-});
+// Only listen on port in non-serverless local environments
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[SalonBook Server] Listening on port ${PORT}`);
+  });
+}
+
+export default app;
