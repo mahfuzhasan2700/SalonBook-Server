@@ -74,6 +74,7 @@ app.get('/', (req, res) => {
 
 // Mount API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', authRoutes); // User profile & settings alias
 app.use('/api/services', serviceRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/payments', paymentRoutes);
