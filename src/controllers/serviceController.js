@@ -79,12 +79,21 @@ export const getAdminServices = async (req, res) => {
 // @access  Public / Protected on details page
 export const getServiceById = async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!id || id.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid salon service ID format.',
+      });
+    }
+
+    const service = await Service.findById(id);
 
     if (!service) {
       return res.status(404).json({
         success: false,
-        message: 'Salon service not found.',
+        message: 'Salon service not found with the specified ID.',
       });
     }
 
