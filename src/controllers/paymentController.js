@@ -106,11 +106,15 @@ export const handleStripeWebhook = async (req, res) => {
   let event;
 
   try {
-    if (webhookSecret && sig) {
+    if (webhookSecret && sig && !webhookSecret.includes('placeholder')) {
       event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } else {
-      // In local dev without webhook secret, parse payload directly
-      event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      // In local dev/testing without webhook signature, parse buffer/string to JSON
+      let rawString = req.body;
+      if (Buffer.isBuffer(req.body)) {
+        rawString = req.body.toString('utf8');
+      }
+      event = typeof rawString === 'string' ? JSON.parse(rawString) : rawString;
     }
   } catch (err) {
     console.error(`[Webhook Verification Error]: ${err.message}`);

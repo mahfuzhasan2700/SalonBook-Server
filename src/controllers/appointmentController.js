@@ -27,7 +27,7 @@ export const createAppointment = async (req, res) => {
     if (service.status !== 'active') {
       return res.status(400).json({
         success: false,
-        message: 'This salon service is currently unavailable for booking.',
+        message: 'This salon service is currently inactive and unavailable for booking.',
       });
     }
 
@@ -46,8 +46,13 @@ export const createAppointment = async (req, res) => {
     }
 
     // 3. Create appointment with default status: pending, paymentStatus: unpaid
+    // Store snapshots to keep history readable even after a service is updated or removed
     const appointment = await Appointment.create({
       serviceId,
+      serviceName: service.serviceName,
+      serviceCategory: service.category,
+      serviceImage: service.image,
+      serviceDuration: service.duration,
       customerId: req.user._id,
       appointmentDate,
       timeSlot,
@@ -67,6 +72,14 @@ export const createAppointment = async (req, res) => {
       appointment: populatedAppointment,
     });
   } catch (error) {
+    // Catch MongoDB duplicate key error code 11000 from partial unique index
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'The selected date and time slot was just booked by another customer. Please choose a different slot.',
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to submit appointment request.',
@@ -131,7 +144,7 @@ export const cancelCustomerAppointment = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Appointment request has been cancelled.',
+      message: 'Appointment request has been cancelled and time slot released.',
       appointment,
     });
   } catch (error) {

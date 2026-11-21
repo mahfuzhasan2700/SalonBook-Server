@@ -26,11 +26,11 @@ export const getAllServices = async (req, res) => {
       query.category = category.trim();
     }
 
-    // Sorting by price
+    // Sorting by price (support hyphen, underscore, or short names)
     let sortOption = { createdAt: -1 }; // default: newest first
-    if (sort === 'price-asc') {
+    if (sort === 'price-asc' || sort === 'price_asc' || sort === 'asc') {
       sortOption = { price: 1 };
-    } else if (sort === 'price-desc') {
+    } else if (sort === 'price-desc' || sort === 'price_desc' || sort === 'desc') {
       sortOption = { price: -1 };
     }
 
